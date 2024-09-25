@@ -27,11 +27,11 @@ internal class Program
 			}
 		}
 
-		var argumentos = $"{dllPath} /out=dll.il";
+		var arguments = $"{dllPath} /out=dll.il";
 
-		Process.Start(string.IsNullOrEmpty(ildasmPath) ? @"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe" : ildasmPath, argumentos).WaitForExit();
+		Process.Start(string.IsNullOrEmpty(ildasmPath) ? @"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe" : ildasmPath, arguments).WaitForExit();
 
-		var interpretador = new ILInterpreter("dll.il");
-		interpretador.AnalisarArquivo();
+		var interpreter = new ILInterpreter("dll.il");
+		interpreter.AnalyzeFile();
 	}
 }

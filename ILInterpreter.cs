@@ -17,9 +17,9 @@ namespace Complexidade
 			"brfalse"
 		];
 
-		public void AnalisarArquivo()
+		public void AnalyzeFile()
 		{
-			SepararMetodos();
+			SplitMethods();
 
 			var sb = new StringBuilder();
 
@@ -36,47 +36,47 @@ namespace Complexidade
 				}
 			}
 
-			File.WriteAllText("teste.txt", sb.ToString());
+			File.WriteAllText("test.txt", sb.ToString());
 		}
 
-		private void SepararMetodos()
+		private void SplitMethods()
 		{
-			using (var stream = AbrirArquivo())
+			using (var stream = OpenFile())
 			{
 				string line;
 				var node = 0;
 				const string instance = "instance";
 				const string beforefieldinit = "beforefieldinit";
 				var classe = string.Empty;
-				var filtrarMaiorQue10 = true;
+				var filter = true;
 
 				while ((line = stream.ReadLine()?.Trim()!) != null)
 				{
 					if (line.StartsWith(".class") && !line.Contains("nested"))
 					{
-						var assinatura = string.Empty;
+						var signature = string.Empty;
 
 						while (!line.StartsWith('{'))
 						{
-							assinatura += line + " ";
+							signature += line + " ";
 							line = stream.ReadLine()!.Trim();
 						}
 
-						classe = assinatura[(assinatura.IndexOf(beforefieldinit) + beforefieldinit.Length + 1)..];
+						classe = signature[(signature.IndexOf(beforefieldinit) + beforefieldinit.Length + 1)..];
 						classe = classe[..classe.IndexOf(' ')];
 					}
 
 					if (line.StartsWith(".method"))
 					{
-						var assinatura = string.Empty;
+						var signature = string.Empty;
 
 						while (!line.StartsWith('{'))
 						{
-							assinatura += line + " ";
+							signature += line + " ";
 							line = stream.ReadLine()!.Trim();
 						}
 
-						var comeco = assinatura.Substring(assinatura.IndexOf(instance) + instance.Length);
+						var comeco = signature.Substring(signature.IndexOf(instance) + instance.Length);
 
 						methods.Add(new Method()
 						{
@@ -92,7 +92,7 @@ namespace Complexidade
 							{
 								if (node == 0)
 								{
-									if (filtrarMaiorQue10 && methods.Last().CyclomaticComplexity <= 10)
+									if (filter && methods.Last().CyclomaticComplexity <= 10)
 									{
 										methods.Remove(methods.Last());
 									}
@@ -108,13 +108,8 @@ namespace Complexidade
 								node += 1;
 							}
 
-							if (VerificarSeDeveIncremenetarComplexidade(line))
+							if (VerifyIfNeedsToIncreaseComplexity(line))
 							{
-								if (methods.Last().Name.Contains("CriteriosInformadosEstaoDeAcordoComConfiguracao"))
-								{
-									Console.WriteLine(line);
-								}
-
 								methods.Last().CyclomaticComplexity += 1;
 							}
 						}
@@ -123,14 +118,14 @@ namespace Complexidade
 			}
 		}
 
-		private bool VerificarSeDeveIncremenetarComplexidade(string line)
+		private bool VerifyIfNeedsToIncreaseComplexity(string line)
 		{
-			var operacao = PegarOperacao(line);
+			var operacao = GetOperation(line);
 
 			return complexityOperations.Any(operacao.Contains);
 		}
 
-		private string PegarOperacao(string line)
+		private string GetOperation(string line)
 		{
 			if (line.StartsWith("IL_") && line.Contains(':'))
 			{
@@ -140,7 +135,7 @@ namespace Complexidade
 			return string.Empty;
 		}
 
-		private StreamReader AbrirArquivo()
+		private StreamReader OpenFile()
 		{
 			return File.OpenText(pathIl);
 		}
