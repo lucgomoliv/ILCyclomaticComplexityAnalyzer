@@ -1,37 +1,89 @@
 ﻿using System.Diagnostics;
-using Complexidade;
+using System.Text;
 
-internal class Program
+namespace Complexidade
 {
-	private static void Main(string[] args)
+	public class Program
 	{
-		var dllPath = string.Empty;
-		var ildasmPath = string.Empty;
-
-		if (args.Length > 0)
-		{
-			dllPath = args[0];
-		}
-
-		if (string.IsNullOrEmpty(dllPath))
-		{
-			Console.WriteLine("Provide the path of the DLL in arguments!");
-			return;
-		}
-
-		foreach (var arg in args)
-		{
-			if (arg.StartsWith("/ildasmPath="))
+		private static readonly Dictionary<ConsoleOption, string> options =
+			new()
 			{
-				ildasmPath = arg[12..];
+				{ ConsoleOption.IldasmPath, "\t\t\t\tPath to 'ildasm.exe' file." },
+				{ ConsoleOption.Item, "=<class>[::<method>[(<sig>)]\tDisassemble the specified item only." },
+				{ ConsoleOption.Output, "\t\t\t\tPath to output the IL and analysis result." }
+			};
+
+		private static void Main(string[] args)
+		{
+			var filePath = args.FirstOrDefault(arg => !arg.StartsWith('/'));
+			var argumentValues = new Dictionary<ConsoleOption, string>();
+
+			if (args.FirstOrDefault() == "/help")
+			{
+				ShowHelp();
+				return;
+			}
+
+			foreach (var arg in args)
+			{
+				if (arg.StartsWith('/'))
+				{
+					foreach (var option in options.Keys)
+					{
+						var optionDescription = option.GetDescription();
+
+						if (arg.StartsWith(optionDescription))
+						{
+							argumentValues[option] = arg[(optionDescription.Length + 1)..];
+						}
+					}
+				}
+			}
+
+			if (string.IsNullOrEmpty(filePath))
+			{
+				Console.WriteLine("Provide the path of the file!");
+				return;
+			}
+
+			if (!argumentValues.TryGetValue(ConsoleOption.IldasmPath, out string? ildasmPath))
+			{
+				Console.WriteLine("Provide the ildasm path via '/ildasmPath'!");
+				return;
+			}
+
+			argumentValues.TryGetValue(ConsoleOption.Output, out string? outputPath);
+
+			outputPath = outputPath == null ? outputPath + "\\" : string.Empty;
+
+			var ildasmArguments = $"{filePath} /out={outputPath}dll.il /text";
+
+			try
+			{
+				Process.Start(ildasmPath, ildasmArguments).WaitForExit();
+
+				var interpreter = new ILInterpreter(outputPath + "dll.il");
+				interpreter.AnalyzeFile();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e.Message);
 			}
 		}
 
-		var arguments = $"{dllPath} /out=dll.il";
+		private static void ShowHelp()
+		{
+			var sb = new StringBuilder();
 
-		Process.Start(string.IsNullOrEmpty(ildasmPath) ? @"C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools\ildasm.exe" : ildasmPath, arguments).WaitForExit();
+			sb.AppendLine("Usage: complexity.exe /ildasmPath=\"<ildasmPath>\" <filePath>\n");
 
-		var interpreter = new ILInterpreter("dll.il");
-		interpreter.AnalyzeFile();
+			foreach (var option in options)
+			{
+				sb.Append(option.Key.GetDescription());
+				sb.AppendLine(option.Value);
+			}
+
+			Console.WriteLine(sb.ToString());
+		}
 	}
 }
