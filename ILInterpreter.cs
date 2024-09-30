@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Complexidade
+namespace Complexity
 {
 	public class ILInterpreter(string pathIl)
 	{

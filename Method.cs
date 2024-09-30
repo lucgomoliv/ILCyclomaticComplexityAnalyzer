@@ -1,4 +1,4 @@
-namespace Complexidade
+namespace Complexity
 {
 	public class Method
 	{

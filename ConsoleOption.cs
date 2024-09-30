@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Complexidade
+namespace Complexity
 {
 	enum ConsoleOption
 	{
