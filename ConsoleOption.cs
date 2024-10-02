@@ -4,6 +4,9 @@ namespace Complexity
 {
 	enum ConsoleOption
 	{
+		[Description("/help")]
+		Help,
+
 		[Description("/ildasmPath")]
 		IldasmPath,
 
@@ -18,7 +21,7 @@ namespace Complexity
 	{
 		public static string GetDescription(this Enum value)
 		{
-			return (value.GetType().GetField(value.ToString())?.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute)?.Description;
+			return (value.GetType().GetField(value.ToString())?.GetCustomAttributes(typeof(DescriptionAttribute), false)?.FirstOrDefault() as DescriptionAttribute)?.Description!;
 		}
 	}
 }
