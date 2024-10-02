@@ -2,10 +2,13 @@ using System.Text;
 
 namespace Complexity
 {
-	public class ILInterpreter(string pathIl)
+	public class ILInterpreter(string outputFolder)
 	{
-		private string pathIl = pathIl;
-		private List<Method> methods = [];
+		private const string IL_FILE_NAME = "code.il";
+		private const string RESULTS_FILE_NAME = "results.txt";
+
+		private readonly string outputFolder = outputFolder;
+		private readonly List<Method> methods = [];
 		private readonly IList<string> complexityOperations = [
 			"beq",
 			"bge",
@@ -36,7 +39,7 @@ namespace Complexity
 				}
 			}
 
-			File.WriteAllText("test.txt", sb.ToString());
+			File.WriteAllText(outputFolder + RESULTS_FILE_NAME, sb.ToString());
 		}
 
 		private void SplitMethods()
@@ -47,8 +50,8 @@ namespace Complexity
 				var node = 0;
 				const string instance = "instance";
 				const string beforefieldinit = "beforefieldinit";
-				var classe = string.Empty;
-				var filter = true;
+				var @class = string.Empty;
+				var filter = false;
 
 				while ((line = stream.ReadLine()?.Trim()!) != null)
 				{
@@ -62,8 +65,8 @@ namespace Complexity
 							line = stream.ReadLine()!.Trim();
 						}
 
-						classe = signature[(signature.IndexOf(beforefieldinit) + beforefieldinit.Length + 1)..];
-						classe = classe[..classe.IndexOf(' ')];
+						@class = signature[(signature.IndexOf(beforefieldinit) + beforefieldinit.Length + 1)..];
+						@class = @class[..@class.IndexOf(' ')];
 					}
 
 					if (line.StartsWith(".method"))
@@ -76,12 +79,12 @@ namespace Complexity
 							line = stream.ReadLine()!.Trim();
 						}
 
-						var comeco = signature.Substring(signature.IndexOf(instance) + instance.Length);
+						var start = signature[(signature.IndexOf(instance) + instance.Length)..];
 
 						methods.Add(new Method()
 						{
-							Classe = classe,
-							Name = comeco[..comeco.IndexOf('(')],
+							Classe = @class,
+							Name = start[..start.IndexOf('(')],
 						});
 
 						while (true)
@@ -120,9 +123,9 @@ namespace Complexity
 
 		private bool VerifyIfNeedsToIncreaseComplexity(string line)
 		{
-			var operacao = GetOperation(line);
+			var operation = GetOperation(line);
 
-			return complexityOperations.Any(operacao.Contains);
+			return complexityOperations.Any(operation.Contains);
 		}
 
 		private string GetOperation(string line)
@@ -137,7 +140,7 @@ namespace Complexity
 
 		private StreamReader OpenFile()
 		{
-			return File.OpenText(pathIl);
+			return File.OpenText(outputFolder + IL_FILE_NAME);
 		}
 	}
 }

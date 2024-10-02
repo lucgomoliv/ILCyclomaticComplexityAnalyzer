@@ -10,7 +10,7 @@ namespace Complexity
 			{
 				{ ConsoleOption.IldasmPath, "\t\t\t\tPath to 'ildasm.exe' file." },
 				{ ConsoleOption.Item, "=<class>[::<method>[(<sig>)]\tDisassemble the specified item only." },
-				{ ConsoleOption.Output, "\t\t\t\tPath to output the IL and analysis result." }
+				{ ConsoleOption.Output, "\t\t\t\tPath to output folder of the IL and analysis results." }
 			};
 
 		private static void Main(string[] args)
@@ -52,17 +52,23 @@ namespace Complexity
 				return;
 			}
 
-			argumentValues.TryGetValue(ConsoleOption.Output, out string? outputPath);
+			argumentValues.TryGetValue(ConsoleOption.Output, out string? outputFolder);
 
-			outputPath = outputPath == null ? outputPath + "\\" : string.Empty;
+			outputFolder = outputFolder != null ? outputFolder + "\\" : string.Empty;
 
-			var ildasmArguments = $"{filePath} /out={outputPath}dll.il /text";
+			Directory.CreateDirectory(outputFolder);
+
+			argumentValues.TryGetValue(ConsoleOption.Item, out string? item);
+
+			item = item != null ? "/item=\"" + item + "\"" : string.Empty;
+
+			var ildasmArguments = $"{filePath} /out={outputFolder}code.il {item} /text";
 
 			try
 			{
 				Process.Start(ildasmPath, ildasmArguments).WaitForExit();
 
-				var interpreter = new ILInterpreter(outputPath + "dll.il");
+				var interpreter = new ILInterpreter(outputFolder);
 				interpreter.AnalyzeFile();
 			}
 			catch (Exception e)
